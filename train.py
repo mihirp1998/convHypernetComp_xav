@@ -52,6 +52,13 @@ hypernet = network.HyperNetwork(train_set.vid_count).cuda()
 encoder = network.EncoderCell().cuda()
 binarizer = network.Binarizer().cuda()
 decoder = network.DecoderCell().cuda()
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+print("hypernet ",count_parameters(hypernet))    
+print("encoder ",count_parameters(encoder))    
+print("decoder ",count_parameters(decoder))    
+print("binarizer ",count_parameters(binarizer))    
+
 #ff = Feedforward(202752).cuda()
 #unet = UNet(9,1).cuda()
 
@@ -101,14 +108,16 @@ def resume(epoch=None):
      #   torch.load('checkpoint100_small/unet_{}_{:08d}.pth'.format(s, epoch)))
     #ff.load_state_dict(
      #   torch.load('checkpoint100_small/ff_{}_{:08d}.pth'.format(s, epoch)))
+    '''
     hypernet_dict = hypernet.state_dict()
     pretrain_hypernet = torch.load('checkpoint100_small/hypernet_{}_{:08d}.pth'.format(s, epoch))
     pretrain_hypernet= {k: v for k, v in pretrain_hypernet.items() if k in hypernet_dict}
     hypernet_dict.update(pretrain_hypernet)
     print("non common keys ",[i for i in hypernet_dict.keys() if i not in pretrain_hypernet.keys()])
     hypernet.load_state_dict(hypernet_dict)
-    #hypernet.load_state_dict(
-     #   torch.load('checkpoint100_small/hypernet_{}_{:08d}.pth'.format(s, epoch)))
+    '''
+    hypernet.load_state_dict(
+        torch.load('checkpoint100_small/hypernet_{}_{:08d}.pth'.format(s, epoch)))
 
 def save(index, epoch=True):
     if not os.path.exists('checkpoint100_small'):
@@ -208,14 +217,14 @@ for epoch in range(last_epoch + 1, args.max_epochs + 1):
         #encodedContext=  encodedContext.view(args.batch_size,-1)
         #print("encodedContext ",encodedContext.shape)
         #encodedContext =  ff(encodedContext)
-        wenc,wdec = hypernet(id_num,batch_size)
+        wenc,wdec,wbin = hypernet(id_num,batch_size)
         bp_t0 = time.time()
 
         for i in range(args.iterations):
             encoded, encoder_h_1, encoder_h_2, encoder_h_3 = encoder(
-                res,wenc,encoder_h_1, encoder_h_2, encoder_h_3)
+                res,wenc,encoder_h_1, encoder_h_2, encoder_h_3,batch_size)
 
-            codes = binarizer(encoded)
+            codes = binarizer(encoded,wbin,batch_size)
 
             output, decoder_h_1, decoder_h_2, decoder_h_3, decoder_h_4 = decoder(
                 codes,wdec, decoder_h_1, decoder_h_2, decoder_h_3, decoder_h_4,batch_size)
@@ -249,7 +258,7 @@ for epoch in range(last_epoch + 1, args.max_epochs + 1):
             scheduler.step()
 
         ## save checkpoint every 500 training steps
-        if index % 80 == 0 and index != 0:
+        if index % 150 == 0 and index != 0:
             save(0, False)
 
     save(epoch)
