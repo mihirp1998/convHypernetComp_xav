@@ -93,7 +93,7 @@ class HyperNetwork(nn.Module):
         self.batchsize= batchsize
         contextEmbed = self.context_embeddings(id_num)
 
-        h_final = torch.matmul(contextEmbed, self.w1)
+        h_final = torch.matmul(contextEmbed, self.w1) + self.b1
 
         init_conv = h_final[:,:self.layer_cum[0]]
         init_conv = init_conv.view(self.batchsize,512,32,1,1)
