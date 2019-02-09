@@ -77,10 +77,13 @@ class HyperNetwork(nn.Module):
         initrange = 0.5 / emb_dimension
         self.context_embeddings.weight.data.uniform_(-initrange, initrange)
         # self.z_dim = z_dim
-        layers = np.array([512*32*1*1]+[2048*512*3*3] + [2048*512*1*1] +[2048*128*3*3] + [2048*512*1*1] + [1024*128*3*3] + [1024*256*3*3] + [512*64*3*3] + [512*128*3*3] + [32*3*1*1])
+        enclayer =   np.array([64*3*3*3]+[1024*64*3*3]+[1024*256*1*1]+[2048*256*3*3]+[2048*512*1*1]+[2048*512*3*3]+[2048*512*1*1])
+        declayer = np.array([512*32*1*1]+[2048*512*3*3] + [2048*512*1*1] +[2048*128*3*3] + [2048*512*1*1] + [1024*128*3*3] + [1024*256*3*3] + [512*64*3*3] + [512*128*3*3] + [32*3*1*1])
         #total is 18333792
-        self.layer_cum= np.cumsum(layers) 
-        f = self.layer_cum[-1]
+        self.enclayer_cum= np.cumsum(enclayer) 
+        self.declayer_cum= np.cumsum(declayer) 
+
+        f = self.enclayer_cum[-1] + self.declayer_cum[-1]
         #f=2359296
         # out = self.out_size*self.f_size*self.f_size*self.in_size
         self.w1 = Parameter(torch.fmod(torch.randn((emb_dimension, f)),2))
@@ -95,36 +98,39 @@ class HyperNetwork(nn.Module):
 
         h_final = torch.matmul(contextEmbed, self.w1) 
 
-        init_conv = h_final[:,:self.layer_cum[0]]
+        init_conv = h_final[:,:self.declayer_cum[0]]
         init_conv = init_conv.view(self.batchsize,512,32,1,1)
         #print("datatype",init_conv.dtype)
-        rnn1_i = h_final[:,self.layer_cum[0]:self.layer_cum[1]]
+        rnn1_i = h_final[:,self.declayer_cum[0]:self.declayer_cum[1]]
         #print(rnn1_i.shape)
         rnn1_i = rnn1_i.view(self.batchsize,2048,512,3,3)
         
-        rnn1_h = h_final[:,self.layer_cum[1]:self.layer_cum[2]]
+        rnn1_h = h_final[:,self.declayer_cum[1]:self.declayer_cum[2]]
         rnn1_h = rnn1_h.view(self.batchsize,2048,512,1,1)
 
-        rnn2_i = h_final[:,self.layer_cum[2]:self.layer_cum[3]]
+        rnn2_i = h_final[:,self.declayer_cum[2]:self.declayer_cum[3]]
         rnn2_i = rnn2_i.view(self.batchsize,2048,128,3,3)
 
-        rnn2_h = h_final[:,self.layer_cum[3]:self.layer_cum[4]]
+        rnn2_h = h_final[:,self.declayer_cum[3]:self.declayer_cum[4]]
         rnn2_h = rnn2_h.view(self.batchsize,2048,512,1,1)
 
-        rnn3_i = h_final[:,self.layer_cum[4]:self.layer_cum[5]]
+        rnn3_i = h_final[:,self.declayer_cum[4]:self.declayer_cum[5]]
         rnn3_i = rnn3_i.view(self.batchsize,1024,128,3,3)
 
-        rnn3_h = h_final[:,self.layer_cum[5]:self.layer_cum[6]]
+        rnn3_h = h_final[:,self.declayer_cum[5]:self.declayer_cum[6]]
         rnn3_h = rnn3_h.view(self.batchsize,1024,256,3,3)
 
-        rnn4_i = h_final[:,self.layer_cum[6]:self.layer_cum[7]]
+        rnn4_i = h_final[:,self.declayer_cum[6]:self.declayer_cum[7]]
         rnn4_i = rnn4_i.view(self.batchsize,512,64,3,3)
 
-        rnn4_h = h_final[:,self.layer_cum[7]:self.layer_cum[8]]
+        rnn4_h = h_final[:,self.declayer_cum[7]:self.declayer_cum[8]]
         rnn4_h = rnn4_h.view(self.batchsize,512,128,3,3)
 
-        final_conv = h_final[:,self.layer_cum[8]:]
+        final_conv = h_final[:,self.declayer_cum[8]:self.declayer_cum[9]]
         final_conv = final_conv.view(self.batchsize,3,32,1,1)
+
+
+        
 
         return [init_conv,rnn1_i,rnn1_h,rnn2_i,rnn2_h,rnn3_i,rnn3_h,rnn4_i,rnn4_h,final_conv]
 
