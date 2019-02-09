@@ -125,7 +125,7 @@ def save(index, epoch=True):
     torch.save(hypernet.state_dict(), 'checkpoint100_small/hypernet_{}_{:08d}.pth'.format(s, index))   
 
 #
-resume()
+#resume()
 
 scheduler = LS.MultiStepLR(solver, milestones=[2, 3, 20, 50, 100], gamma=0.5)
 
