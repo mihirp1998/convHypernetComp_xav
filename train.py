@@ -101,9 +101,14 @@ def resume(epoch=None):
      #   torch.load('checkpoint100_small/unet_{}_{:08d}.pth'.format(s, epoch)))
     #ff.load_state_dict(
      #   torch.load('checkpoint100_small/ff_{}_{:08d}.pth'.format(s, epoch)))
-
-    hypernet.load_state_dict(
-     torch.load('checkpoint100_small/hypernet_{}_{:08d}.pth'.format(s, epoch)))
+    hypernet_dict = hypernet.state_dict()
+    pretrain_hypernet = torch.load('checkpoint100_small/hypernet_{}_{:08d}.pth'.format(s, epoch))
+    pretrain_hypernet= {k: v for k, v in pretrain_hypernet.items() if k in hypernet_dict}
+    hypernet_dict.update(pretrain_hypernet)
+    print("non common keys ",[i for i in hypernet_dict.keys() if i not in pretrain_hypernet.keys()])
+    hypernet.load_state_dict(hypernet_dict)
+    #hypernet.load_state_dict(
+     #   torch.load('checkpoint100_small/hypernet_{}_{:08d}.pth'.format(s, epoch)))
 
 def save(index, epoch=True):
     if not os.path.exists('checkpoint100_small'):
