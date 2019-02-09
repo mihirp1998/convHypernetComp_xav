@@ -77,10 +77,13 @@ class HyperNetwork(nn.Module):
         initrange = 0.5 / emb_dimension
         self.context_embeddings.weight.data.uniform_(-initrange, initrange)
         # self.z_dim = z_dim
-        layers = np.array([512*32*1*1]+[2048*512*3*3] + [2048*512*1*1] +[2048*128*3*3] + [2048*512*1*1] + [1024*128*3*3] + [1024*256*3*3] + [512*64*3*3] + [512*128*3*3] + [32*3*1*1])
+        enclayer =   np.array([64*3*3*3]+[1024*64*3*3]+[1024*256*1*1]+[2048*256*3*3]+[2048*512*1*1]+[2048*512*3*3]+[2048*512*1*1])
+        declayers = np.array([512*32*1*1]+[2048*512*3*3] + [2048*512*1*1] +[2048*128*3*3] + [2048*512*1*1] + [1024*128*3*3] + [1024*256*3*3] + [512*64*3*3] + [512*128*3*3] + [32*3*1*1])
         #total is 18333792
-        self.layer_cum= np.cumsum(layers) 
-        f = self.layer_cum[-1]
+        self.enclayer_cum= np.cumsum(enclayer) 
+        self.declayer_cum= np.cumsum(declayer) 
+
+        f = self.enclayer_cum[-1] + self.declayer_cum[-1]
         #f=2359296
         # out = self.out_size*self.f_size*self.f_size*self.in_size
         self.w1 = Parameter(torch.fmod(torch.randn((emb_dimension, f)),2))
