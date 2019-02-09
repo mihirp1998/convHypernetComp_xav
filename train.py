@@ -208,17 +208,17 @@ for epoch in range(last_epoch + 1, args.max_epochs + 1):
         #encodedContext=  encodedContext.view(args.batch_size,-1)
         #print("encodedContext ",encodedContext.shape)
         #encodedContext =  ff(encodedContext)
-        w = hypernet(id_num,batch_size)
+        wenc,wdec = hypernet(id_num,batch_size)
         bp_t0 = time.time()
 
         for i in range(args.iterations):
             encoded, encoder_h_1, encoder_h_2, encoder_h_3 = encoder(
-                res, encoder_h_1, encoder_h_2, encoder_h_3)
+                res,wenc,encoder_h_1, encoder_h_2, encoder_h_3)
 
             codes = binarizer(encoded)
 
             output, decoder_h_1, decoder_h_2, decoder_h_3, decoder_h_4 = decoder(
-                codes,w, decoder_h_1, decoder_h_2, decoder_h_3, decoder_h_4,batch_size)
+                codes,wdec, decoder_h_1, decoder_h_2, decoder_h_3, decoder_h_4,batch_size)
             res = res - output
             losses.append(res.abs().mean())
        

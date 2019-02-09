@@ -10,11 +10,11 @@ class EncoderCell(nn.Module):
     def __init__(self):
         super(EncoderCell, self).__init__()
 
-        self.conv = nn.Conv2d(
-            3, 64, kernel_size=3, stride=2, padding=1, bias=False)
+        # self.conv = nn.Conv2d(
+        #     3, 64, kernel_size=3, stride=2, padding=1, bias=False)
 
         #self.hyper1 = HyperConvLSTMCell(64,256,256,128,stride=2)
-        self.rnn1 = ConvLSTMCell(
+        self.rnn1 = ConvLSTMCellTemp(
             64,
             256,
             kernel_size=3,
@@ -22,7 +22,7 @@ class EncoderCell(nn.Module):
             padding=1,
             hidden_kernel_size=1,
             bias=False)
-        self.rnn2 = ConvLSTMCell(
+        self.rnn2 = ConvLSTMCellTemp(
             256,
             512,
             kernel_size=3,
@@ -30,7 +30,7 @@ class EncoderCell(nn.Module):
             padding=1,
             hidden_kernel_size=1,
             bias=False)
-        self.rnn3 = ConvLSTMCell(
+        self.rnn3 = ConvLSTMCellTemp(
             512,
             512,
             kernel_size=3,
@@ -39,16 +39,20 @@ class EncoderCell(nn.Module):
             hidden_kernel_size=1,
             bias=False)
 
-    def forward(self, input, hidden1, hidden2, hidden3):
-        x = self.conv(input)
+    def forward(self, input,conv_w, hidden1, hidden2, hidden3):
+        init_conv,rnn1_i,rnn1_h,rnn2_i,rnn2_h,rnn3_i,rnn3_h = conv_w
+        self.batchsize=batchsize
+        #x = self.conv1(input)
+        x = batchConv2d(input,init_conv,self.batchsize,stride=2, padding=1, bias=False)
+        # x = self.conv(input)
 
-        hidden1 = self.rnn1(x, hidden1)
+        hidden1 = self.rnn1(x,rnn1_i,rnn1_h,hidden1,self.batchsize)
         x = hidden1[0]
 
-        hidden2 = self.rnn2(x, hidden2)
+        hidden2 = self.rnn2(x,rnn2_i,rnn2_h,hidden2,self.batchsize)
         x = hidden2[0]
 
-        hidden3 = self.rnn3(x, hidden3)
+        hidden3 = self.rnn3(x,rnn3_i,rnn3_h,hidden3,self.batchsize)
         x = hidden3[0]
 
         return x, hidden1, hidden2, hidden3
@@ -98,41 +102,62 @@ class HyperNetwork(nn.Module):
 
         h_final = torch.matmul(contextEmbed, self.w1) 
 
-        init_conv = h_final[:,:self.declayer_cum[0]]
-        init_conv = init_conv.view(self.batchsize,512,32,1,1)
+        dec_init_conv = h_final[:,:self.declayer_cum[0]]
+        dec_init_conv = init_conv.view(self.batchsize,512,32,1,1)
         #print("datatype",init_conv.dtype)
-        rnn1_i = h_final[:,self.declayer_cum[0]:self.declayer_cum[1]]
+        dec_rnn1_i = h_final[:,self.declayer_cum[0]:self.declayer_cum[1]]
         #print(rnn1_i.shape)
-        rnn1_i = rnn1_i.view(self.batchsize,2048,512,3,3)
+        dec_rnn1_i = dec_rnn1_i.view(self.batchsize,2048,512,3,3)
         
-        rnn1_h = h_final[:,self.declayer_cum[1]:self.declayer_cum[2]]
-        rnn1_h = rnn1_h.view(self.batchsize,2048,512,1,1)
+        dec_rnn1_h = h_final[:,self.declayer_cum[1]:self.declayer_cum[2]]
+        dec_rnn1_h = dec_rnn1_h.view(self.batchsize,2048,512,1,1)
 
-        rnn2_i = h_final[:,self.declayer_cum[2]:self.declayer_cum[3]]
-        rnn2_i = rnn2_i.view(self.batchsize,2048,128,3,3)
+        dec_rnn2_i = h_final[:,self.declayer_cum[2]:self.declayer_cum[3]]
+        dec_rnn2_i = dec_rnn2_i.view(self.batchsize,2048,128,3,3)
 
-        rnn2_h = h_final[:,self.declayer_cum[3]:self.declayer_cum[4]]
-        rnn2_h = rnn2_h.view(self.batchsize,2048,512,1,1)
+        dec_rnn2_h = h_final[:,self.declayer_cum[3]:self.declayer_cum[4]]
+        dec_rnn2_h = dec_rnn2_h.view(self.batchsize,2048,512,1,1)
 
-        rnn3_i = h_final[:,self.declayer_cum[4]:self.declayer_cum[5]]
-        rnn3_i = rnn3_i.view(self.batchsize,1024,128,3,3)
+        dec_rnn3_i = h_final[:,self.declayer_cum[4]:self.declayer_cum[5]]
+        dec_rnn3_i = dec_rnn3_i.view(self.batchsize,1024,128,3,3)
 
-        rnn3_h = h_final[:,self.declayer_cum[5]:self.declayer_cum[6]]
-        rnn3_h = rnn3_h.view(self.batchsize,1024,256,3,3)
+        dec_rnn3_h = h_final[:,self.declayer_cum[5]:self.declayer_cum[6]]
+        dec_rnn3_h = dec_rnn3_h.view(self.batchsize,1024,256,3,3)
 
-        rnn4_i = h_final[:,self.declayer_cum[6]:self.declayer_cum[7]]
-        rnn4_i = rnn4_i.view(self.batchsize,512,64,3,3)
+        dec_rnn4_i = h_final[:,self.declayer_cum[6]:self.declayer_cum[7]]
+        dec_rnn4_i = dec_rnn4_i.view(self.batchsize,512,64,3,3)
 
-        rnn4_h = h_final[:,self.declayer_cum[7]:self.declayer_cum[8]]
-        rnn4_h = rnn4_h.view(self.batchsize,512,128,3,3)
+        dec_rnn4_h = h_final[:,self.declayer_cum[7]:self.declayer_cum[8]]
+        dec_rnn4_h = dec_rnn4_h.view(self.batchsize,512,128,3,3)
 
-        final_conv = h_final[:,self.declayer_cum[8]:self.declayer_cum[9]]
-        final_conv = final_conv.view(self.batchsize,3,32,1,1)
+        dec_final_conv = h_final[:,self.declayer_cum[8]:self.declayer_cum[9]]
+        dec_final_conv = dec_final_conv.view(self.batchsize,3,32,1,1)
 
 
+
+        enc_init_conv = h_final[:,self.declayer_cum[9]:self.declayer_cum[10]]
+        enc_init_conv = enc_init_conv.view(self.batchsize,64,3,3,3)
+
+        enc_rnn1_i = h_final[:,self.declayer_cum[10]:self.declayer_cum[11]]
+        enc_rnn1_i = enc_rnn1_i.view(self.batchsize,1024,64,3,3)
+
+        enc_rnn1_h = h_final[:,self.declayer_cum[11]:self.declayer_cum[12]]
+        enc_rnn1_h = enc_rnn1_h.view(self.batchsize,1024,256,1,1)
+
+        enc_rnn2_i = h_final[:,self.declayer_cum[12]:self.declayer_cum[13]]
+        enc_rnn2_i = enc_rnn2_i.view(self.batchsize,2048,256,3,3)
+
+        enc_rnn2_h = h_final[:,self.declayer_cum[13]:self.declayer_cum[14]]
+        enc_rnn2_h = enc_rnn2_h.view(self.batchsize,2048,512,1,1)
+
+        enc_rnn3_i = h_final[:,self.declayer_cum[14]:self.declayer_cum[15]]
+        enc_rnn3_i = enc_rnn3_i.view(self.batchsize,2048,512,3,3)
+
+        enc_rnn3_h = h_final[:,self.declayer_cum[15]:self.declayer_cum[16]]
+        enc_rnn3_h = enc_rnn3_h.view(self.batchsize,2048,512,1,1)
         
 
-        return [init_conv,rnn1_i,rnn1_h,rnn2_i,rnn2_h,rnn3_i,rnn3_h,rnn4_i,rnn4_h,final_conv]
+        return [[enc_init_conv,enc_rnn1_i,enc_rnn1_h,enc_rnn2_i,enc_rnn2_h,enc_rnn3_i,enc_rnn3_h],[dec_init_conv,dec_rnn1_i,dec_rnn1_h,dec_rnn2_i,dec_rnn2_h,dec_rnn3_i,dec_rnn3_h,dec_rnn4_i,dec_rnn4_h,dec_final_conv]]
 
 
 
