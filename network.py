@@ -84,7 +84,7 @@ class HyperNetwork(nn.Module):
         #f=2359296
         # out = self.out_size*self.f_size*self.f_size*self.in_size
         self.w1 = Parameter(torch.fmod(torch.randn((emb_dimension, f)),2))
-        # self.b1 = Parameter(torch.fmod(torch.randn((h)),2))
+        self.b1 = Parameter(torch.fmod(torch.randn((f)),2))
 
         # self.w2 = Parameter(torch.fmod(torch.randn((h,f)),2))
         # self.b2 = Parameter(torch.fmod(torch.randn((f)),2))

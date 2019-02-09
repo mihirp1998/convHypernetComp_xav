@@ -101,8 +101,9 @@ def resume(epoch=None):
      #   torch.load('checkpoint100_small/unet_{}_{:08d}.pth'.format(s, epoch)))
     #ff.load_state_dict(
      #   torch.load('checkpoint100_small/ff_{}_{:08d}.pth'.format(s, epoch)))
+
     hypernet.load_state_dict(
-        torch.load('checkpoint100_small/hypernet_{}_{:08d}.pth'.format(s, epoch)))
+     torch.load('checkpoint100_small/hypernet_{}_{:08d}.pth'.format(s, epoch)))
 
 def save(index, epoch=True):
     if not os.path.exists('checkpoint100_small'):
