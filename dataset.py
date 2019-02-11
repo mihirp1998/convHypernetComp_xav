@@ -64,7 +64,7 @@ class ImageFolder(data.Dataset):
         vid_freq = dict()
         for i in self.imgs:
             imgtocomp = i[0]
-            id_img = imgtocomp.split("/")[1][:-9]
+            id_img = imgtocomp.split("/")[1][:30]
             # print(id_img)
             try:
                 vid_freq[id_img] += 1
@@ -87,14 +87,14 @@ class ImageFolder(data.Dataset):
         self.loader = loader
         self.train= train
 
-        # self.vid_freq,self.vid2id = self.genIds()
-        #pickle.dump(self.vid2id,open("train_dict.p","wb"))
+        #self.vid_freq,self.vid2id = self.genIds()
+        #pickle.dump(self.vid2id,open("train_dict1.p","wb"))
 
         self.vid2id = pickle.load(open("train_dict.p","rb"))
         self.vid_count = len(self.vid2id)
         print("vid count ",self.vid_count)
 
-        print("ids ",self.vid2id['framezg_14kFY2OM_000009_000019'])#should be 94
+        #print("ids ",self.vid2id['framezg_14kFY2OM_000009_000019'])#should be 94
 
     def __getitem__(self, index):
         filenames = self.imgs[index]

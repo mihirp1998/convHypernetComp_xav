@@ -98,12 +98,12 @@ def resume(epoch=None):
     unet.load_state_dict(
         torch.load('checkpoint100_new/unet_temp.pth'.format(s, epoch)))
         '''
-    encoder.load_state_dict(
-        torch.load('checkpoint100_small/encoder_{}_{:08d}.pth'.format(s, epoch)))
-    binarizer.load_state_dict(
-        torch.load('checkpoint100_small/binarizer_{}_{:08d}.pth'.format(s, epoch)))
-    decoder.load_state_dict(
-        torch.load('checkpoint100_small/decoder_{}_{:08d}.pth'.format(s, epoch)))
+    #encoder.load_state_dict(
+     #   torch.load('checkpoint100_small/encoder_{}_{:08d}.pth'.format(s, epoch)))
+    #binarizer.load_state_dict(
+     #   torch.load('checkpoint100_small/binarizer_{}_{:08d}.pth'.format(s, epoch)))
+    #decoder.load_state_dict(
+     #   torch.load('checkpoint100_small/decoder_{}_{:08d}.pth'.format(s, epoch)))
     #unet.load_state_dict(
      #   torch.load('checkpoint100_small/unet_{}_{:08d}.pth'.format(s, epoch)))
     #ff.load_state_dict(
@@ -117,29 +117,29 @@ def resume(epoch=None):
     hypernet.load_state_dict(hypernet_dict)
     '''
     hypernet.load_state_dict(
-        torch.load('checkpoint100_small/hypernet_{}_{:08d}.pth'.format(s, epoch)))
+        torch.load('checkpoint100_100vids/hypernet_{}_{:08d}.pth'.format(s, epoch)))
 
 def save(index, epoch=True):
-    if not os.path.exists('checkpoint100_small'):
-        os.mkdir('checkpoint100_small')
+    if not os.path.exists('checkpoint100_100vids'):
+        os.mkdir('checkpoint100_100vids')
 
     if epoch:
         s = 'epoch'
     else:
         s = 'iter'
 
-    torch.save(encoder.state_dict(), 'checkpoint100_small/encoder_{}_{:08d}.pth'.format(s, index))
+    #torch.save(encoder.state_dict(), 'checkpoint100_small/encoder_{}_{:08d}.pth'.format(s, index))
 
-    torch.save(binarizer.state_dict(),'checkpoint100_small/binarizer_{}_{:08d}.pth'.format(s, index))
+    #torch.save(binarizer.state_dict(),'checkpoint100_small/binarizer_{}_{:08d}.pth'.format(s, index))
 
-    torch.save(decoder.state_dict(), 'checkpoint100_small/decoder_{}_{:08d}.pth'.format(s, index))
+   # torch.save(decoder.state_dict(), 'checkpoint100_small/decoder_{}_{:08d}.pth'.format(s, index))
 
     #torch.save(unet.state_dict(), 'checkpoint100_small/unet_{}_{:08d}.pth'.format(s, index))    
     #torch.save(ff.state_dict(), 'checkpoint100_small/ff_{}_{:08d}.pth'.format(s, index))    
-    torch.save(hypernet.state_dict(), 'checkpoint100_small/hypernet_{}_{:08d}.pth'.format(s, index))   
+    torch.save(hypernet.state_dict(), 'checkpoint100_100vids/hypernet_{}_{:08d}.pth'.format(s, index))   
 
 #
-#resume()
+resume()
 
 scheduler = LS.MultiStepLR(solver, milestones=[2, 3, 20, 50, 100], gamma=0.5)
 
@@ -251,14 +251,14 @@ for epoch in range(last_epoch + 1, args.max_epochs + 1):
                '\n').format(* [l.data[0] for l in losses]))
 
         index = (epoch - 1) * len(train_loader) + batch
-        if index % 10000 == 0 and index != 0:
+        if index % 2000 == 0 and index != 0:
             vepoch+=1
-            save(vepoch)
+            #save(vepoch)
             #print("scheduled")
             scheduler.step()
 
         ## save checkpoint every 500 training steps
-        if index % 150 == 0 and index != 0:
+        if index % 1000 == 0 and index != 0:
             save(0, False)
 
     save(epoch)
