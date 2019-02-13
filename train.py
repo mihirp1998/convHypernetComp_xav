@@ -195,7 +195,7 @@ for epoch in range(last_epoch + 1, args.max_epochs + 1):
             all_losses = []
         index = (epoch - 1) * len(train_loader) + batch
 
-        if index % 2000 == 0 and index != 0:
+        if index % 700 == 0 and index != 0:
             vepoch+=1
             #save(vepoch)
             #print("scheduled")
