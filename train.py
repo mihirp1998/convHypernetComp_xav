@@ -26,6 +26,8 @@ parser.add_argument('--lr', type=float, default=0.0005, help='learning rate')
 parser.add_argument(
     '--iterations', type=int, default=16, help='unroll iterations')
 parser.add_argument('--checkpoint', type=int, help='unroll iterations')
+parser.add_argument('--update', type=int, help='unroll update')
+
 args = parser.parse_args()
 
 import new_dataset as dataset
@@ -55,15 +57,6 @@ print("binarizer ",count_parameters(binarizer))
 
 solver = optim.Adam(
     [
-        {
-            'params': encoder.parameters()
-        },
-        {
-            'params': binarizer.parameters()
-        },
-        {
-            'params': decoder.parameters()
-        },
         {
             'params': hypernet.parameters()
         }
@@ -104,6 +97,10 @@ if args.checkpoint:
     scheduler.last_epoch = last_epoch - 1
 
 vepoch=0
+index =0
+solver.zero_grad()
+loss_mini_batch = 0
+all_losses = []
 for epoch in range(last_epoch + 1, args.max_epochs + 1):
 
     scheduler.step()
@@ -176,31 +173,38 @@ for epoch in range(last_epoch + 1, args.max_epochs + 1):
             res = res - output
             losses.append(res.abs().mean())
        
+        all_losses.append(losses)
+       
         bp_t1 = time.time()
 
         loss = sum(losses) / args.iterations
-
+        loss = loss/args.update
         loss.backward()
 
-        solver.step()
+        loss_mini_batch += loss.data[0]
 
-
-        batch_t1 = time.time()
-
-        print(
-            '[TRAIN] Epoch[{}]({}/{}); Loss: {:.6f}; Backpropagation: {:.4f} sec; Batch: {:.4f} sec'.
-            format(epoch, batch + 1,
-                   len(train_loader), loss.data[0], bp_t1 - bp_t0, batch_t1 -
-                   batch_t0))
-        print(('{:.4f} ' * args.iterations +
-               '\n').format(* [l.data[0] for l in losses]))
-
+        if (index +1) % args.update == 0:
+            # Do a SGD step once every iter_size iterations
+            solver.step()
+            solver.zero_grad()
+            # print("Iter: %02d, Loss: %4.4f" % (i, loss_mini_batch/10))
+            batch_t1 = time.time()
+            print('[TRAIN] Epoch[{}]({}/{}); Loss: {:.6f}; Backpropagation: {:.4f} sec; Batch: {:.4f} sec'.format(epoch, batch + 1,len(train_loader), loss_mini_batch/args.update, bp_t1 - bp_t0, batch_t1 -batch_t0))
+            print(('{:.4f} ' * args.iterations +'\n').format(* [l.data[0] for l in np.array(all_losses).mean(axis=0)]))
+            loss_mini_batch = 0
+            all_losses = []
         index = (epoch - 1) * len(train_loader) + batch
+
         if index % 2000 == 0 and index != 0:
             vepoch+=1
+            #save(vepoch)
+            #print("scheduled")
             scheduler.step()
+        # if index % 2000 == 0 and index != 0:
+        #     vepoch+=1
+        #     scheduler.step()
 
-        if index % 1000 == 0 and index != 0:
-            save(0, False)
-
-    save(epoch)
+        # if index % 1000 == 0 and index != 0:
+        #     save(0, False)
+    if epoch % 5 == 0:
+        save(epoch)
