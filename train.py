@@ -20,7 +20,7 @@ parser.add_argument(
 parser.add_argument(
     '--train', '-f', required=True, type=str, help='folder of training images')
 parser.add_argument(
-    '--max-epochs', '-e', type=int, default=200, help='max epochs')
+    '--max-epochs', '-e', type=int, default=20000, help='max epochs')
 parser.add_argument('--lr', type=float, default=0.0005, help='learning rate')
 # parser.add_argument('--cuda', '-g', action='store_true', help='enables cuda')
 parser.add_argument(
@@ -88,7 +88,7 @@ def save(index, epoch=True):
 #
 #resume()
 
-scheduler = LS.MultiStepLR(solver, milestones=[2, 3, 20, 50, 100], gamma=0.5)
+scheduler = LS.MultiStepLR(solver, milestones=[900, 1000, 1200, 1500, 2000], gamma=0.5)
 
 last_epoch = 0
 if args.checkpoint:
@@ -189,7 +189,7 @@ for epoch in range(last_epoch + 1, args.max_epochs + 1):
             solver.zero_grad()
             # print("Iter: %02d, Loss: %4.4f" % (i, loss_mini_batch/10))
             batch_t1 = time.time()
-            print('[TRAIN] Epoch[{}]({}/{}); Loss: {:.6f}; Backpropagation: {:.4f} sec; Batch: {:.4f} sec'.format(epoch, batch + 1,len(train_loader), loss_mini_batch/args.update, bp_t1 - bp_t0, batch_t1 -batch_t0))
+            print('[TRAIN] Epoch[{}]({}/{}); Loss: {:.6f}; Backpropagation: {:.4f} sec; Batch: {:.4f} sec'.format(epoch, batch + 1,len(train_loader), loss_mini_batch, bp_t1 - bp_t0, batch_t1 -batch_t0))
             print(('{:.4f} ' * args.iterations +'\n').format(* [l.data[0] for l in np.array(all_losses).mean(axis=0)]))
             loss_mini_batch = 0
             all_losses = []
@@ -199,12 +199,12 @@ for epoch in range(last_epoch + 1, args.max_epochs + 1):
             vepoch+=1
             #save(vepoch)
             #print("scheduled")
-            scheduler.step()
+            #scheduler.step()
         # if index % 2000 == 0 and index != 0:
         #     vepoch+=1
         #     scheduler.step()
 
-        # if index % 1000 == 0 and index != 0:
-        #     save(0, False)
-    if epoch % 5 == 0:
+        if index % 2000 == 0 and index != 0:
+             save(0, False)
+    if epoch % 100 == 0:
         save(epoch)

@@ -93,7 +93,7 @@ class HyperNetwork(nn.Module):
         #self.linear1 = nn.Linear(32, f, bias=True)
         #self.linear1 = nn.DataParallel(self.linear1)
         self.w1 = Parameter(torch.fmod(torch.randn((emb_dimension, f)),2))
-        #self.b1 = Parameter(torch.fmod(torch.randn((f)),2))
+        self.b1 = Parameter(torch.fmod(torch.zeros((f)),2))
 
         #self.w2 = Parameter(torch.fmod(torch.randn((h,f)),2))
         #self.b2 = Parameter(torch.fmod(torch.randn((f)),2))
@@ -103,7 +103,7 @@ class HyperNetwork(nn.Module):
         contextEmbed = self.context_embeddings(id_num)
         #h_final= self.linear(contextEmbed)
         #h_final = self.linear1(h_final)
-        h_final = torch.matmul(contextEmbed, self.w1) 
+        h_final = torch.matmul(contextEmbed, self.w1) + self.b1
 
         dec_init_conv = h_final[:,:self.layer_cum[0]]
         dec_init_conv = dec_init_conv.view(512,32,1,1)
