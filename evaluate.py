@@ -8,7 +8,6 @@ import torch
 import numpy as np
 import time
 import pickle
-from unet import UNet
 def as_img_array(image):
 	# Iutput: [batch_size, depth, height, width]
 	# Output: [batch_size, height, width, depth]
@@ -83,9 +82,9 @@ def finish_batch(args, original, out_imgs,
 
 
 
-def forward_model(model, data,context, args,iterations):
+def forward_model(model, data,id_num, args,iterations):
 	with torch.no_grad():
-		encoder, binarizer, decoder,unet = model
+		encoder, binarizer, decoder,hypernet = model
 		batch_size, input_channels, height, width = data.size()
 		encoder_h_1 = (Variable(
 			torch.zeros(batch_size, 256, height // 4, width // 4)),
@@ -127,14 +126,15 @@ def forward_model(model, data,context, args,iterations):
 		decoder_h_4 = (decoder_h_4[0].cuda(), decoder_h_4[1].cuda())
 
 		patches = Variable(data.cuda())
+		id_num = Variable(id_num.cuda())
 
 		losses = []
 
 		res = patches - 0.5
 		# context = pickle.load(open("context.p","rb"))
-		context = context.cuda()
+		# context = context.cuda()
 
-		context = unet(context)
+		# context = unet(context)
 		# pickle.dump(context,open("context.p","wb"))
 
 		batch_size, _, height, width = res.size()
@@ -145,6 +145,8 @@ def forward_model(model, data,context, args,iterations):
 		out_imgs = []
 		losses = []
 
+		wenc,wdec,wbin = hypernet(id_num,batch_size)
+
 		codes = []
 		prev_psnr = 0.0
 		for i in range(iterations):
@@ -152,15 +154,15 @@ def forward_model(model, data,context, args,iterations):
 
 			# Encode.
 			encoded, encoder_h_1, encoder_h_2, encoder_h_3 = encoder(
-				encoder_input, encoder_h_1, encoder_h_2, encoder_h_3)
+				encoder_input,wenc, encoder_h_1, encoder_h_2, encoder_h_3,batch_size)
 
 			# Binarize.
-			code = binarizer(encoded)
+			code = binarizer(encoded,wbin,batch_size)
 			# if args.save_codes:
 			#     codes.append(code.data.cpu().numpy())
 
 			output, decoder_h_1, decoder_h_2, decoder_h_3, decoder_h_4 = decoder(
-				code,context, decoder_h_1, decoder_h_2, decoder_h_3, decoder_h_4,i)
+				code,wdec, decoder_h_1, decoder_h_2, decoder_h_3, decoder_h_4,i)
 
 			res = res - output
 			out_img = out_img + output.data.cpu()
@@ -253,14 +255,9 @@ def resume(epoch=None):
 		epoch = 0
 	else:
 		s = 'epoch'
-	encoder.load_state_dict(
-		torch.load('{}/encoder_{}_{:08d}.pth'.format(args.directory,s, epoch)))
-	binarizer.load_state_dict(
-		torch.load('{}/binarizer_{}_{:08d}.pth'.format(args.directory,s, epoch)))
-	decoder.load_state_dict(
-		torch.load('{}/decoder_{}_{:08d}.pth'.format(args.directory,s, epoch)))
-	unet.load_state_dict(
-		torch.load('{}/unet_{}_{:08d}.pth'.format(args.directory,s, epoch)))
+	hypernet.load_state_dict(
+		torch.load('{}/hypernet_{}_{:08d}.pth'.format(args.directory,s, epoch)))
+	print("loaded")
 	'''
 	encoder.load_state_dict(
 		torch.load('checkpoint100_new/encoder_temp.pth'.format(s, epoch)))
@@ -307,8 +304,7 @@ evaluatePickle = args.evaluatePickle
 txtFile = "resultTxt/"+ evaluatePickle[:-1]+"txt" +"." +args.directory
 eval_set = dataset.ImageFolder(root=args.eval,file_name = evaluatePickle ,train=False)
 
-eval_loader = data.DataLoader(
-	dataset=eval_set, batch_size=args.batch_size, shuffle=True, num_workers=0)
+eval_loader = data.DataLoader(dataset=eval_set, batch_size=args.batch_size, shuffle=True, num_workers=0)
 
 print('total images: {}; total batches: {}'.format(
 	len(eval_set), len(eval_loader)))
@@ -318,19 +314,16 @@ print('total images: {}; total batches: {}'.format(
 encoder = network.EncoderCell().cuda()
 binarizer = network.Binarizer().cuda()
 decoder = network.DecoderCell().cuda()
-unet = UNet(9,1).cuda()
+hypernet = network.HyperNetwork(eval_set.vid_count).cuda()
 
 encoder.eval()
 binarizer.eval()
 decoder.eval()
-unet.eval()
+hypernet.eval()
 
-encoder = encoder.cuda()
-binarizer = binarizer.cuda()
-decoder = decoder.cuda()
-unet = unet.cuda()
 
-model = [encoder, binarizer, decoder,unet]
+
+model = [encoder, binarizer, decoder,hypernet]
 resume()
 if args.checkpoint:
 	resume(args.checkpoint)
