@@ -73,28 +73,28 @@ def resume(epoch=None):
         s = 'epoch'
     print("Loaded")
     hypernet.load_state_dict(
-        torch.load('checkpoint100_100vids/hypernet_{}_{:08d}.pth'.format(s, epoch)))
+        torch.load('checkpoint100_100vids_wn/hypernet_{}_{:08d}.pth'.format(s, epoch)))
 
 def save(index, epoch=True):
-    if not os.path.exists('checkpoint100_100vids'):
-        os.mkdir('checkpoint100_100vids')
+    if not os.path.exists('checkpoint100_100vids_wn'):
+        os.mkdir('checkpoint100_100vids_wn')
 
     if epoch:
         s = 'epoch'
     else:
         s = 'iter'
-    torch.save(hypernet.state_dict(), 'checkpoint100_100vids/hypernet_{}_{:08d}.pth'.format(s, index))   
+    torch.save(hypernet.state_dict(), 'checkpoint100_100vids_wn/hypernet_{}_{:08d}.pth'.format(s, index))   
 
 #
-#resume()
+resume()
 
-scheduler = LS.MultiStepLR(solver, milestones=[900, 1000, 1200, 1500, 2000], gamma=0.5)
+scheduler = LS.MultiStepLR(solver, milestones=[300, 500, 700, 1000, 1200], gamma=0.5)
 
 last_epoch = 0
 if args.checkpoint:
     resume(args.checkpoint)
-    last_epoch = args.checkpoint
-    scheduler.last_epoch = last_epoch - 1
+last_epoch = 650
+scheduler.last_epoch = last_epoch - 1
 
 vepoch=0
 index =0

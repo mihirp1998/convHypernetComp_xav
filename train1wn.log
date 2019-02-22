@@ -1,0 +1,56 @@
+vid count  100 100
+total images: 100; total batches: 100
+hypernet  602767200
+encoder  0
+decoder  0
+binarizer  0
+/home_01/f20150198/miniconda2/envs/python3/lib/python3.5/site-packages/torch/nn/functional.py:1006: UserWarning: nn.functional.sigmoid is deprecated. Use torch.sigmoid instead.
+  warnings.warn("nn.functional.sigmoid is deprecated. Use torch.sigmoid instead.")
+/home_01/f20150198/miniconda2/envs/python3/lib/python3.5/site-packages/torch/nn/functional.py:995: UserWarning: nn.functional.tanh is deprecated. Use torch.tanh instead.
+  warnings.warn("nn.functional.tanh is deprecated. Use torch.tanh instead.")
+train.py:184: UserWarning: invalid index of a 0-dim tensor. This will be an error in PyTorch 0.5. Use tensor.item() to convert a 0-dim tensor to a Python number
+  loss_mini_batch += loss.data[0]
+[TRAIN] Epoch[1](11/100); Loss: 0.259181; Backpropagation: 0.5424 sec; Batch: 1.8665 sec
+train.py:193: UserWarning: invalid index of a 0-dim tensor. This will be an error in PyTorch 0.5. Use tensor.item() to convert a 0-dim tensor to a Python number
+  print(('{:.4f} ' * args.iterations +'\n').format(* [l.data[0] for l in np.array(all_losses).mean(axis=0)]))
+0.2356 0.2356 0.2356 0.2356 0.2356 0.2356 0.2356 0.2356 0.2356 0.2356 0.2356 0.2356 0.2356 0.2356 0.2356 0.2356 
+
+[TRAIN] Epoch[1](21/100); Loss: 0.233521; Backpropagation: 0.5428 sec; Batch: 1.8662 sec
+0.2335 0.2335 0.2335 0.2335 0.2335 0.2335 0.2335 0.2335 0.2335 0.2335 0.2335 0.2335 0.2335 0.2335 0.2335 0.2335 
+
+[TRAIN] Epoch[1](31/100); Loss: 0.256181; Backpropagation: 0.5428 sec; Batch: 1.8654 sec
+0.2562 0.2562 0.2562 0.2562 0.2562 0.2562 0.2562 0.2562 0.2562 0.2562 0.2562 0.2562 0.2562 0.2562 0.2562 0.2562 
+
+[TRAIN] Epoch[1](41/100); Loss: 0.228071; Backpropagation: 0.5440 sec; Batch: 1.8662 sec
+0.2281 0.2281 0.2281 0.2281 0.2281 0.2281 0.2281 0.2281 0.2281 0.2281 0.2281 0.2281 0.2281 0.2281 0.2281 0.2281 
+
+[TRAIN] Epoch[1](51/100); Loss: 0.243469; Backpropagation: 0.5428 sec; Batch: 1.8642 sec
+0.2435 0.2435 0.2435 0.2435 0.2435 0.2435 0.2435 0.2435 0.2435 0.2435 0.2435 0.2435 0.2435 0.2435 0.2435 0.2435 
+
+[TRAIN] Epoch[1](61/100); Loss: 0.246148; Backpropagation: 0.5433 sec; Batch: 1.8638 sec
+0.2461 0.2461 0.2461 0.2461 0.2461 0.2461 0.2461 0.2461 0.2461 0.2461 0.2461 0.2461 0.2461 0.2461 0.2461 0.2461 
+
+[TRAIN] Epoch[1](71/100); Loss: 0.271910; Backpropagation: 0.5427 sec; Batch: 1.8635 sec
+0.2719 0.2719 0.2719 0.2719 0.2719 0.2719 0.2719 0.2719 0.2719 0.2719 0.2719 0.2719 0.2719 0.2719 0.2719 0.2719 
+
+[TRAIN] Epoch[1](81/100); Loss: 0.264975; Backpropagation: 0.5432 sec; Batch: 1.8646 sec
+0.2650 0.2650 0.2650 0.2650 0.2650 0.2650 0.2650 0.2650 0.2650 0.2650 0.2650 0.2650 0.2650 0.2650 0.2650 0.2650 
+
+[TRAIN] Epoch[1](91/100); Loss: 0.266687; Backpropagation: 0.5432 sec; Batch: 1.8633 sec
+0.2667 0.2667 0.2667 0.2667 0.2667 0.2667 0.2667 0.2667 0.2667 0.2667 0.2667 0.2667 0.2667 0.2667 0.2667 0.2667 
+
+[TRAIN] Epoch[2](1/100); Loss: 0.234427; Backpropagation: 0.5434 sec; Batch: 1.7811 sec
+0.2344 0.2344 0.2344 0.2344 0.2344 0.2344 0.2344 0.2344 0.2344 0.2344 0.2344 0.2344 0.2344 0.2344 0.2344 0.2344 
+
+[TRAIN] Epoch[2](11/100); Loss: 0.257711; Backpropagation: 0.5442 sec; Batch: 1.8650 sec
+0.2577 0.2577 0.2577 0.2577 0.2577 0.2577 0.2577 0.2577 0.2577 0.2577 0.2577 0.2577 0.2577 0.2577 0.2577 0.2577 
+
+[TRAIN] Epoch[2](21/100); Loss: 0.213294; Backpropagation: 0.5431 sec; Batch: 1.8644 sec
+0.2133 0.2133 0.2133 0.2133 0.2133 0.2133 0.2133 0.2133 0.2133 0.2133 0.2133 0.2133 0.2133 0.2133 0.2133 0.2133 
+
+[TRAIN] Epoch[2](31/100); Loss: 0.243637; Backpropagation: 0.5436 sec; Batch: 1.8628 sec
+0.2436 0.2436 0.2436 0.2436 0.2436 0.2436 0.2436 0.2436 0.2436 0.2436 0.2436 0.2436 0.2436 0.2436 0.2436 0.2436 
+
+[TRAIN] Epoch[2](41/100); Loss: 0.236456; Backpropagation: 0.5434 sec; Batch: 1.8637 sec
+0.2365 0.2365 0.2365 0.2365 0.2365 0.2365 0.2365 0.2365 0.2365 0.2365 0.2365 0.2365 0.2365 0.2365 0.2365 0.2365 
+
