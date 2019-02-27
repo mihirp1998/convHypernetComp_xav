@@ -91,15 +91,17 @@ class HyperNetwork(nn.Module):
         f = self.layer_cum[-1]
         #f=2359296
         # out = self.out_size*self.f_size*self.f_size*self.in_size
-        self.linear = weight_norm(nn.Linear(emb_dimension, f, bias=True))
-        self.linear.bias = Parameter(torch.fmod(torch.randn(self.linear.bias.shape),0.1))
+        # self.linear = weight_norm(nn.Linear(emb_dimension, f, bias=True))
+        # self.linear.bias = Parameter(torch.fmod(torch.randn(self.linear.bias.shape),0.1))
         #self.linear.weight_g = Parameter(torch.fmod(torch.randn(self.linear.weight_g.shape),20))
         #self.linear.weight_v = Parameter(torch.fmod(torch.randn(self.linear.weight_v.shape),2))
         #self.linear1 = nn.Linear(32, f, bias=True)
         #self.linear1 = nn.DataParallel(self.linear1)
         #uncomment
-        #self.w1 = Parameter(torch.fmod(torch.randn((emb_dimension, f)),2))
-        #self.b1 = Parameter(torch.fmod(torch.zeros((f)),2))
+        self.w1 = Parameter(torch.fmod(torch.randn((emb_dimension, f)),2))
+        self.w1 =torch.nn.init.xavier_normal(self.w1)
+        self.b1 = Parameter(torch.fmod(torch.zeros((f)),2))
+        self.b1 =torch.nn.init.xavier_normal(self.b1)
 
         #self.w2 = Parameter(torch.fmod(torch.randn((h,f)),2))
         #self.b2 = Parameter(torch.fmod(torch.randn((f)),2))
@@ -109,8 +111,8 @@ class HyperNetwork(nn.Module):
         contextEmbed = self.context_embeddings(id_num)
         #h_final= self.linear(contextEmbed)
         #h_final = self.linear1(h_final)
-        #h_final = torch.matmul(contextEmbed, self.w1) + self.b1
-        h_final = self.linear(contextEmbed)
+        h_final = torch.matmul(contextEmbed, self.w1) + self.b1
+        # h_final = self.linear(contextEmbed)
 
         dec_init_conv = h_final[:,:self.layer_cum[0]]
         dec_init_conv = dec_init_conv.view(512,32,1,1)
