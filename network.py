@@ -80,17 +80,18 @@ class HyperNetwork(nn.Module):
         initrange = 0.5 / emb_dimension
         self.context_embeddings.weight.data.uniform_(-initrange, initrange)
         # self.z_dim = z_dim
-        enclayer =   [64*3*3*3]+[1024*64*3*3]+[1024*256*1*1]+[2048*256*3*3]+[2048*512*1*1]+[2048*512*3*3]+[2048*512*1*1]
-        declayer = [512*32*1*1]+[2048*512*3*3] + [2048*512*1*1] +[2048*128*3*3] + [2048*512*1*1] + [1024*128*3*3] + [1024*256*3*3] + [512*64*3*3] + [512*128*3*3] + [32*3*1*1]
-        binlayer=[512*32*1*1]
-        layer = np.array(declayer+enclayer+binlayer)
+        self.enclayer =   [[64,3,3,3]]+[[1024,64,3,3]]+[[1024,256,1,1]]+[[2048,256,3,3]]+[[2048,512,1,1]]+[[2048,512,3,3]]+[[2048,512,1,1]]
+        self.declayer = [[512,32,1,1]]+[[2048,512,3,3]] + [[2048,512,1,1]] +[[2048,128,3,3]] + [[2048,512,1,1]] + [[1024,128,3,3]] + [[1024,256,3,3]] + [[512,64,3,3]] + [[512,128,3,3]] + [[32,3,1,1]]
+        self.binlayer=[[512,32,1,1]]
+        # layer = np.array(declayer+enclayer+binlayer)
         #total is 18333792
-        self.layer_cum= np.cumsum(layer) 
+        # self.layer_cum= np.cumsum(layer) 
         #self.layer_cum= np.cumsum(declayer) 
 
-        f = self.layer_cum[-1]
+
+        # f = self.layer_cum[-1]
         #f=2359296
-        # out = self.out_size*self.f_size*self.f_size*self.in_size
+        # out = self.out_size,self.f_size,self.f_size,self.in_size
         # self.linear = weight_norm(nn.Linear(emb_dimension, f, bias=True))
         # self.linear.bias = Parameter(torch.fmod(torch.randn(self.linear.bias.shape),0.1))
         #self.linear.weight_g = Parameter(torch.fmod(torch.randn(self.linear.weight_g.shape),20))
@@ -98,82 +99,37 @@ class HyperNetwork(nn.Module):
         #self.linear1 = nn.Linear(32, f, bias=True)
         #self.linear1 = nn.DataParallel(self.linear1)
         #uncomment
-        self.w1 = Parameter(torch.fmod(torch.randn((emb_dimension, f)),2))
+        # self.encoderWeights = [Parameter(torch.fmod(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.enclayer]
+        # self.decoderWeights = [Parameter(torch.fmod(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.declayer]
+        # self.binWeights = [Parameter(torch.fmod(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.binlayer]
+        self.encoderWeights = [Parameter(torch.nn.init.xavier_normal_(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.enclayer]
+        self.decoderWeights = [Parameter(torch.nn.init.xavier_normal_(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.declayer]
+        self.binWeights = [Parameter(torch.nn.init.xavier_normal_(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.binlayer]
+
         #self.w1 =torch.nn.init.xavier_normal(self.w1)
-       	self.b1 = Parameter(torch.fmod(torch.zeros((f)),2))
+        self.encoderBias = [Parameter(torch.fmod(torch.zeros((self.total(i))),2)) for i in self.enclayer]
+        self.decoderBias = [Parameter(torch.fmod(torch.zeros((self.total(i))),2)) for i in self.declayer]
+        self.binBias = [Parameter(torch.fmod(torch.zeros((self.total(i))),2)) for i in self.binlayer]
         #self.b1 =torch.nn.init.xavier_normal(self.b1)
 
         #self.w2 = Parameter(torch.fmod(torch.randn((h,f)),2))
         #self.b2 = Parameter(torch.fmod(torch.randn((f)),2))
+    def total(self,tensor_shape):
+        return tensor_shape[0]*tensor_shape[1]*tensor_shape[2]*tensor_shape[3]
 
     def forward(self,id_num,batchsize):
         self.batchsize= batchsize
         contextEmbed = self.context_embeddings(id_num)
         #h_final= self.linear(contextEmbed)
         #h_final = self.linear1(h_final)
-        h_final = torch.matmul(contextEmbed, self.w1)  + self.b1
-        # h_final = self.linear(contextEmbed)
+        enc_kernels = [(torch.matmul(contextEmbed,self.encoderWeights[i])  + self.encoderBias[i]).view(self.enclayer[i]) for i in range(len(self.encoderWeights))]
+        dec_kernels = [(torch.matmul(contextEmbed,self.decoderWeights[i])  + self.decoderBias[i]).view(self.declayer[i]) for i in range(len(self.decoderWeights))]
+        bin_kernels = [(torch.matmul(contextEmbed,self.binWeights[i])  + self.binBias[i]).view(self.binlayer[i]) for i in range(len(self.binWeights))]
 
-        dec_init_conv = h_final[:,:self.layer_cum[0]]
-        dec_init_conv = dec_init_conv.view(512,32,1,1)
-        #print("datatype",init_conv.dtype)
-        dec_rnn1_i = h_final[:,self.layer_cum[0]:self.layer_cum[1]]
-        #print(rnn1_i.shape)
-        dec_rnn1_i = dec_rnn1_i.view(2048,512,3,3)
-        
-        dec_rnn1_h = h_final[:,self.layer_cum[1]:self.layer_cum[2]]
-        dec_rnn1_h = dec_rnn1_h.view(2048,512,1,1)
-
-        dec_rnn2_i = h_final[:,self.layer_cum[2]:self.layer_cum[3]]
-        dec_rnn2_i = dec_rnn2_i.view(2048,128,3,3)
-
-        dec_rnn2_h = h_final[:,self.layer_cum[3]:self.layer_cum[4]]
-        dec_rnn2_h = dec_rnn2_h.view(2048,512,1,1)
-
-        dec_rnn3_i = h_final[:,self.layer_cum[4]:self.layer_cum[5]]
-        dec_rnn3_i = dec_rnn3_i.view(1024,128,3,3)
-
-        dec_rnn3_h = h_final[:,self.layer_cum[5]:self.layer_cum[6]]
-        dec_rnn3_h = dec_rnn3_h.view(1024,256,3,3)
-
-        dec_rnn4_i = h_final[:,self.layer_cum[6]:self.layer_cum[7]]
-        dec_rnn4_i = dec_rnn4_i.view(512,64,3,3)
-
-        dec_rnn4_h = h_final[:,self.layer_cum[7]:self.layer_cum[8]]
-        dec_rnn4_h = dec_rnn4_h.view(512,128,3,3)
-
-        dec_final_conv = h_final[:,self.layer_cum[8]:self.layer_cum[9]]
-        dec_final_conv = dec_final_conv.view(3,32,1,1)
+        # h_final = self.linear(contextEmbed
 
 
-
-        enc_init_conv = h_final[:,self.layer_cum[9]:self.layer_cum[10]]
-        enc_init_conv = enc_init_conv.view(64,3,3,3)
-
-        enc_rnn1_i = h_final[:,self.layer_cum[10]:self.layer_cum[11]]
-        enc_rnn1_i = enc_rnn1_i.view(1024,64,3,3)
-
-        enc_rnn1_h = h_final[:,self.layer_cum[11]:self.layer_cum[12]]
-        enc_rnn1_h = enc_rnn1_h.view(1024,256,1,1)
-
-        enc_rnn2_i = h_final[:,self.layer_cum[12]:self.layer_cum[13]]
-        enc_rnn2_i = enc_rnn2_i.view(2048,256,3,3)
-
-        enc_rnn2_h = h_final[:,self.layer_cum[13]:self.layer_cum[14]]
-        enc_rnn2_h = enc_rnn2_h.view(2048,512,1,1)
-
-        enc_rnn3_i = h_final[:,self.layer_cum[14]:self.layer_cum[15]]
-        enc_rnn3_i = enc_rnn3_i.view(2048,512,3,3)
-
-        enc_rnn3_h = h_final[:,self.layer_cum[15]:self.layer_cum[16]]
-        enc_rnn3_h = enc_rnn3_h.view(2048,512,1,1)
-        
-
-        bin_init_conv = h_final[:,self.layer_cum[16]:self.layer_cum[17]]
-        bin_init_conv = bin_init_conv.view(32,512,1,1)
-
-
-        return [[enc_init_conv,enc_rnn1_i,enc_rnn1_h,enc_rnn2_i,enc_rnn2_h,enc_rnn3_i,enc_rnn3_h],[dec_init_conv,dec_rnn1_i,dec_rnn1_h,dec_rnn2_i,dec_rnn2_h,dec_rnn3_i,dec_rnn3_h,dec_rnn4_i,dec_rnn4_h,dec_final_conv],bin_init_conv]
+        return [enc_kernels,dec_kernels,bin_kernels]
 
 
 
@@ -255,3 +211,9 @@ class DecoderCell(nn.Module):
         x = F.tanh(x) / 2
 
         return x, hidden1, hidden2, hidden3, hidden4
+
+if __name__ == "__main__":
+    hp  = HyperNetwork(2)
+    a,b,c = hp(torch.tensor(1),4)
+    print([i.shape for i in a],[i.shape for i in b],[i.shape for i in c])
+
