@@ -1,4 +1,4 @@
-# convHypernetComp
+# convHypernetComp_xav
 
 How to run
 ```bash
