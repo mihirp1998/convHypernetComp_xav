@@ -47,8 +47,8 @@ hypernet = network.HyperNetwork(train_set.vid_count).cuda()
 encoder = network.EncoderCell().cuda()
 binarizer = network.Binarizer().cuda()
 decoder = network.DecoderCell().cuda()
-def count_parameters(model):
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+# def count_parameters(model):
+#     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 print("hypernet ",count_parameters(hypernet))    
 print("encoder ",count_parameters(encoder))    
 print("decoder ",count_parameters(decoder))    
@@ -93,7 +93,7 @@ scheduler = LS.MultiStepLR(solver, milestones=[30, 50, 70, 100, 120], gamma=0.5)
 #last_epoch = 0
 if args.checkpoint:
     resume(args.checkpoint)
-last_epoch = 650
+# last_epoch = 650
 scheduler.last_epoch = last_epoch - 1
 
 vepoch=0
