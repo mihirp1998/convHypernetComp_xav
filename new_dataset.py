@@ -112,7 +112,7 @@ class ImageFolder(data.Dataset):
         #print(self.d[id_name])
         random.shuffle(self.d[id_name])
         files = self.d[id_name][:2]
-        #print(id_name,files)
+        #print(id_num,files)
         imgs = self.loader(files,self.root)
 
         imgs = np_to_torch(imgs)
