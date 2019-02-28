@@ -102,14 +102,14 @@ class HyperNetwork(nn.Module):
         # self.encoderWeights = [Parameter(torch.fmod(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.enclayer]
         # self.decoderWeights = [Parameter(torch.fmod(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.declayer]
         # self.binWeights = [Parameter(torch.fmod(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.binlayer]
-        self.encoderWeights = [Parameter(torch.nn.init.xavier_normal_(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.enclayer]
-        self.decoderWeights = [Parameter(torch.nn.init.xavier_normal_(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.declayer]
-        self.binWeights = [Parameter(torch.nn.init.xavier_normal_(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.binlayer]
+        self.encoderWeights = nn.ParameterList([Parameter(torch.nn.init.xavier_normal_(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.enclayer])
+        self.decoderWeights = nn.ParameterList([Parameter(torch.nn.init.xavier_normal_(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.declayer])
+        self.binWeights = nn.ParameterList([Parameter(torch.nn.init.xavier_normal_(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.binlayer])
 
         #self.w1 =torch.nn.init.xavier_normal(self.w1)
-        self.encoderBias = [Parameter(torch.fmod(torch.zeros((self.total(i))),2)) for i in self.enclayer]
-        self.decoderBias = [Parameter(torch.fmod(torch.zeros((self.total(i))),2)) for i in self.declayer]
-        self.binBias = [Parameter(torch.fmod(torch.zeros((self.total(i))),2)) for i in self.binlayer]
+        self.encoderBias = nn.ParameterList([Parameter(torch.fmod(torch.zeros((self.total(i))),2)) for i in self.enclayer])
+        self.decoderBias = nn.ParameterList([Parameter(torch.fmod(torch.zeros((self.total(i))),2)) for i in self.declayer])
+        self.binBias = nn.ParameterList([Parameter(torch.fmod(torch.zeros((self.total(i))),2)) for i in self.binlayer])
         #self.b1 =torch.nn.init.xavier_normal(self.b1)
 
         #self.w2 = Parameter(torch.fmod(torch.randn((h,f)),2))
@@ -214,6 +214,11 @@ class DecoderCell(nn.Module):
 
 if __name__ == "__main__":
     hp  = HyperNetwork(2)
+
+    def count_parameters(model):
+        return sum(p.numel() for p in model.parameters())
+
+    print("count params ",count_parameters(hp))
     a,b,c = hp(torch.tensor(1),4)
     print([i.shape for i in a],[i.shape for i in b],[i.shape for i in c])
 
