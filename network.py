@@ -127,9 +127,9 @@ class HyperNetwork(nn.Module):
         bin_kernels = [(torch.matmul(contextEmbed,self.binWeights[i])  + self.binBias[i]).view(self.binlayer[i]) for i in range(len(self.binWeights))]
 
         # h_final = self.linear(contextEmbed
+        # print(enc_kernels[0].shape)
 
-
-        return [enc_kernels,dec_kernels,bin_kernels]
+        return enc_kernels,dec_kernels,bin_kernels[0]
 
 
 
