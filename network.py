@@ -99,12 +99,12 @@ class HyperNetwork(nn.Module):
         #self.linear1 = nn.Linear(32, f, bias=True)
         #self.linear1 = nn.DataParallel(self.linear1)
         #uncomment
-        self.encoderWeights =  nn.ParameterList([Parameter(torch.fmod(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.enclayer])
-        self.decoderWeights =  nn.ParameterList([Parameter(torch.fmod(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.declayer])
-        self.binWeights =  nn.ParameterList([Parameter(torch.fmod(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.binlayer])
-        # self.encoderWeights = nn.ParameterList([Parameter(torch.nn.init.xavier_normal_(torch.empty(emb_dimension, self.total(i)) )) for i in self.enclayer])
-        # self.decoderWeights = nn.ParameterList([Parameter(torch.nn.init.xavier_normal_(torch.empty(emb_dimension, self.total(i)) )) for i in self.declayer])
-        # self.binWeights = nn.ParameterList([Parameter(torch.nn.init.xavier_normal_(torch.empty(emb_dimension, self.total(i)) )) for i in self.binlayer])
+        # self.encoderWeights =  nn.ParameterList([Parameter(torch.fmod(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.enclayer])
+        # self.decoderWeights =  nn.ParameterList([Parameter(torch.fmod(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.declayer])
+        # self.binWeights =  nn.ParameterList([Parameter(torch.fmod(torch.randn((emb_dimension, self.total(i) )),2)) for i in self.binlayer])
+        self.encoderWeights = nn.ParameterList([Parameter(torch.nn.init.xavier_normal_(torch.empty(emb_dimension, self.total(i)) )) for i in self.enclayer])
+        self.decoderWeights = nn.ParameterList([Parameter(torch.nn.init.xavier_normal_(torch.empty(emb_dimension, self.total(i)) )) for i in self.declayer])
+        self.binWeights = nn.ParameterList([Parameter(torch.nn.init.xavier_normal_(torch.empty(emb_dimension, self.total(i)) )) for i in self.binlayer])
 
         #self.w1 =torch.nn.init.xavier_normal(self.w1)
         self.encoderBias = nn.ParameterList([Parameter(torch.fmod(torch.zeros((self.total(i))),2)) for i in self.enclayer])
